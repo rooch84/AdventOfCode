@@ -10,6 +10,9 @@ public class Day2 {
 		
 		int[][] keypad = { {1,4,7}, {2,5,8}, {3,6,9}};
 		
+		int w = 3;
+		int h = 3;
+		
 		Scanner scn = null;
 
 		try {
@@ -30,16 +33,16 @@ public class Day2 {
 			
 				switch (dir) {
 				case 'U':
-					y  = y == 0 ? 0 : y - 1;
+					y  = y == 0 ? y : y - 1;
 					break;
 				case 'R':
-					x = x == 2 ? 2 : x + 1;
+					x = x == w-1 ? x : x + 1;
 					break;
 				case 'L':
-					x = x == 0 ? 0 : x - 1;
+					x = x == 0 ? x : x - 1;
 					break;
 				case 'D':
-					y = y == 2 ? 2 : y + 1;
+					y = y == h-1 ? y : y + 1;
 					break;
 				}
 			}
