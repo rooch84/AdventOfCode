@@ -9,7 +9,7 @@ import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-public class Day4 {
+public class Day4PartB {
 
 	public static void main(String[] args) {
 
@@ -84,9 +84,42 @@ public class Day4 {
 
 			if (!error && check.equals("")) {
 				total += Integer.parseInt(strId);
+				
+				String nameOnly = "";
+				for (int i = 0; i < hashSplit.length - 1; ++i) {
+					nameOnly += hashSplit[i] + "-";
+				}
+				
+				String dec = decryptRoom(nameOnly, Integer.parseInt(strId));
+				if (dec.contains("north")) {
+					System.out.println(dec);
+					System.out.println(strId);
+				}
 			}
 
 		}
 		System.out.println(total);
 	}
+	
+	private static String decryptRoom(String enc, int parseInt) {
+		String name = "";
+		for (int i = 0; i < enc.length(); ++i) {
+			if (enc.charAt(i) == '-') {
+				name += "-";
+			} else {
+				char foo = (char) (enc.charAt(i) + (parseInt % 26));
+				if (enc.charAt(i) + (parseInt % 26) >= 123) {
+					foo = (char) (enc.charAt(i) + (parseInt % 26) - 26);
+				}
+
+				name += foo;
+			}
+		}
+		return name;
+
+	}
+
 }
+
+
+
