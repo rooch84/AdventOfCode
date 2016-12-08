@@ -28,7 +28,9 @@ import java.io.FileNotFoundException;
  * corresponding kek in hypernet; the aaa sequence is not related, because the
  * interior character must be different). zazbz[bzb]cdb supports SSL (zaz has no
  * corresponding aza, but zbz has a corresponding bzb, even though zaz and zbz
- * overlap). How many IPs in your puzzle input support SSL?
+ * overlap). 
+ * 
+ * How many IPs in your puzzle input support SSL?
  * 
  * @author Chris Rooney
  *
