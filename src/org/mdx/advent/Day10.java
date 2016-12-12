@@ -113,7 +113,7 @@ public class Day10 {
 				}
 			}
 		} while (i != -1);
-		System.out.println("Produc of o0, o1 and o2 is " + outputs.get(0) * outputs.get(1) * outputs.get(2));
+		System.out.println("Product of o0, o1 and o2 is " + outputs.get(0) * outputs.get(1) * outputs.get(2));
 	}
 
 	private static int botHasTwoChips(Map<Integer, Bot> bots) {
