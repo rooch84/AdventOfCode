@@ -1,178 +1,133 @@
 package org.mdx.advent;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Queue;
+import java.util.Scanner;
+import java.util.Stack;
 
 public class Day11 {
 
-	// static String[] layout = { "2HG", "1HM", "3LG", "1LM" };
-	// static String[] layout = { "1SG", "1SM", "1PG", "1PM", "2TG", "2RG",
-	// "2RM", "2CG", "2CM", "3TM", "1EG", "1EM",
-	// "1DG", "1DM" };
-	// static String start = "1E2HG1HM3LG1LM";
-	// static String start = "1E1SG1SM1PG1PM2TG2RG2RM2CG2CM3TM";
-	 static String start = "1E1SG1SM1PG1PM2TG2RG2RM2CG2CM3TM1EG1EM1DG1DM";
-
 	public static void main(String[] args) {
-		Map<String, State> tree = new HashMap<String, State>();
-		State startState = new State(start);
-		tree.put(startState.toString(), startState);
-		System.out.println(startState.printFloorPlan());
-		traverse(startState, tree);
-		System.out.println("Finished traversing, there are " + tree.size() + " possible states. Now finding shortest path");
-		Set<String> q = new HashSet<String>(tree.keySet());
-		List<String> dist = new ArrayList<String>();
 		
-		for (State s : tree.values()) {
-			s.l = Integer.MAX_VALUE;
-			s.p = "";
+		Scanner scn = null;
+		try {
+			scn = new Scanner(new File(args[0]));
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
-
-		tree.get(start).l = 0;
-		dist.add(start);
-
-		while (q.size() > 0) {
-			String n = dist.remove(0);
-			q.remove(n);
-			State state = tree.get(n);
-
-			int a = state.l + 1;
-			for (String s : state.children) {
-				if (a < tree.get(s).l) {
-					tree.get(s).l = a;
-					tree.get(s).p = n;
-					int i = 0;
-					while (i < dist.size() && tree.get(dist.get(i)).l < a) {
-						i++;
+		String start = scn.nextLine();
+		
+		Map<String, Child> tree = new HashMap<String, Child>();
+		State startState = new State(start);
+		tree.put(startState.toString(), new Child(0));
+		System.out.println(startState.printFloorPlan());
+		
+		Queue<String> stateQ = new LinkedList<String>();
+		
+		stateQ.add(start);
+		
+		boolean isEndState = false;
+		while(!stateQ.isEmpty() && !isEndState) {
+			
+			String cS = stateQ.poll();
+			State s = new State(cS);
+			List<Item> it = s.getItemsOnFloor();
+			for (int i = 0; i < it.size(); ++i) {
+				if (s.e < 4) {
+					s.e++;
+					it.get(i).floor++;
+					isEndState = check(cS, s, tree, stateQ);
+						
+					for (int j = i + 1; j < it.size(); ++j) {
+						it.get(j).floor++;
+						isEndState = isEndState ? isEndState : check(cS, s, tree, stateQ);
+						it.get(j).floor--;
 					}
-					dist.add(i, s);
+					it.get(i).floor--;
+					s.e--;
 				}
+				if (s.e > 1) {
+					s.e--;
+					it.get(i).floor--;
+					isEndState = isEndState ? isEndState : check(cS, s, tree, stateQ);
+					for (int j = i + 1; j < it.size(); ++j) {
+						it.get(j).floor--;
+						isEndState = isEndState ? isEndState : check(cS, s, tree, stateQ);
+						it.get(j).floor++;
+					}
+					it.get(i).floor++;
+					s.e++;
+				}
+
 			}
 		}
+		
+		System.out.println("Finished traversing, there are " + tree.size() + " possible states. Now looking for end state.");
 
-		for (State s : tree.values()) {
-			if (s.allOnFouthFloor()) {
-				System.out.println("Completed in " + s.l + " moves");
+		String endState = "";
+		for (Map.Entry<String, Child> s : tree.entrySet()) {
+			if (new State(s.getKey()).allOnFouthFloor()) {
+				endState = s.getKey();
+				System.out.println("Found in.  Shortest path is " + s.getValue().l + " moves.");
 			}
+		}
+		
+		System.out.println("Press 'p' to play the solution.");
+		try {
+			if ((char) System.in.read() == 'p') {
+				playSolution(endState, tree);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 	}
 
-	public static void traverse(State s, Map<String, State> tree) {
-		List<Item> it = s.getItemsOnFloor();
-		for (int i = 0; i < it.size(); ++i) {
-			if (s.e < 4) {
-				s.e++;
-				it.get(i).floor++;
-				check(s, tree);
-				for (int j = i + 1; j < it.size(); ++j) {
-					it.get(j).floor++;
-					check(s, tree);
-					it.get(j).floor--;
-				}
-				it.get(i).floor--;
-				s.e--;
+	private static void playSolution(String endState, Map<String, Child> tree) {
+		Stack<String> stack = new Stack<String>();
+		stack.push(endState);
+		String p = tree.get(endState).p;
+		while(!p.equals("")) {
+			stack.push(p);
+			p = tree.get(p).p;
+		}
+		
+		while(!stack.isEmpty()) {
+			
+			System.out.println(new State(stack.pop()).printFloorPlan());
+			
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			if (s.e > 1) {
-				s.e--;
-				it.get(i).floor--;
-				check(s, tree);
-				for (int j = i + 1; j < it.size(); ++j) {
-					it.get(j).floor--;
-					check(s, tree);
-					it.get(j).floor++;
-				}
-				it.get(i).floor++;
-				s.e++;
-			}
-
 		}
 	}
 
-	private static void check(State s, Map<String, State> tree) {
+	private static boolean check(String prevS, State s, Map<String, Child> tree, Queue<String> q) {
 		if (s.isValid()) {
 			State newS = new State(s.toString());
 			if (!tree.containsKey(newS.toString())) {
-				tree.put(newS.toString(), newS);
-				if (!newS.allOnFouthFloor()) {
-					traverse(newS, tree);
+				tree.put(newS.toString(), new Child(tree.get(prevS.toString()).l+1, prevS));
+				
+				q.add(newS.toString());
+				if (newS.allOnFouthFloor()) {
+					return true; 
 				}
 			}
-			s.children.add(s.toString());
 		}
+		return false;
 	}
-
-	// Scanner s = new Scanner(System.in);
-	// while (!allOnFouthFloor(items)) {
-	// System.out.println(printFloorPlan(items, e));
-	// String nextMove = s.nextLine();
-	// char d = nextMove.charAt(0);
-	// int newE = 0;
-	// boolean isValid = true;
-	// if (d == 'u' && e < 4) {
-	// newE = e + 1;
-	// } else if (d == 'd' && e > 1) {
-	// newE = e - 1;
-	// } else {
-	// isValid = false;
-	// System.out.println("Not a valid floor");
-	// }
-	// int i = -1;
-	// if (nextMove.charAt(1) >= 97) {
-	// i = nextMove.charAt(1) - 87;
-	// } else {
-	// i = Integer.parseInt(nextMove.substring(1, 2));
-	// }
-	// int j = -1;
-	// if (items[i].floor != e) {
-	// isValid = false;
-	// System.out.println("First item is not on this floor");
-	// }
-	// items[i].changeFloor(newE);
-	//
-	// if (nextMove.length() == 3) {
-	// if (nextMove.charAt(2) >= 97) {
-	// j = nextMove.charAt(2) - 87;
-	// } else {
-	// j = Integer.parseInt(nextMove.substring(2, 3));
-	// }
-	// if (items[j].floor != e) {
-	// isValid = false;
-	// System.out.println("Second item is not on this floor");
-	// }
-	// items[j].changeFloor(newE);
-	// }
-	//
-	// if (i == j) {
-	// isValid = false;
-	// System.out.println("Items are the same");
-	// }
-	//
-	// if (!validMove(items)) {
-	// isValid = false;
-	// System.out.println("Conflict on next level");
-	// }
-	//
-	// if (!isValid) {
-	// items[i].resetFloor();
-	// if (j != -1) {
-	// items[j].resetFloor();
-	// }
-	//
-	// } else {
-	// n++;
-	// e = newE;
-	// moves.add(nextMove);
-	// }
-	//
-	// System.out.println("Number of moves is " + n);
-	// }
-	// s.close();
-	// }
 
 	private static class Item {
 		int floor;
@@ -188,12 +143,23 @@ public class Day11 {
 		}
 	}
 
+	private static class Child {
+		String p = "";
+		int l;
+		
+		public Child(int l) {
+			this.l = l;
+		}
+		
+		public Child(int l, String p) {
+			this(l);
+			this.p = p;
+		}
+	}
+	
 	private static class State {
 		List<Item> items = new ArrayList<Item>();
-		List<String> children = new ArrayList<String>();
 		int e;
-		int l;
-		String p;
 
 		public String toString() {
 			String output = e + "E";
