@@ -10,7 +10,7 @@ import processing.core.PFont;
 
 /**
  * To compile from root: javac -cp ./lib/core.jar src/org/mdx/advent/Day5PartB.java -d .
- * To run from root: java -cp .:./lib/core.jar org/mdx/advent/Day5PartB <input>
+ * To run from project root: java -cp .:./lib/core.jar org/mdx/advent/Day5PartB <input>
  *  
  * 
  * --- Part Two ---
