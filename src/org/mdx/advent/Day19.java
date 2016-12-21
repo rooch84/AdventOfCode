@@ -1,8 +1,7 @@
 package org.mdx.advent;
 
 /**
- * Test input is 5
- * Actual input is 3017957
+ * Test input is 5 Actual input is 3017957
  * 
  * --- Day 19: An Elephant Named Joseph ---
  * 
@@ -25,48 +24,64 @@ package org.mdx.advent;
  * With the number of Elves given in your puzzle input, which Elf gets all the
  * presents?
  * 
+ * --- Part Two ---
+ * 
+ * Realizing the folly of their present-exchange rules, the Elves agree to
+ * instead steal presents from the Elf directly across the circle. If two Elves
+ * are across the circle, the one on the left (from the perspective of the
+ * stealer) is stolen from. The other rules remain unchanged: Elves with no
+ * presents are removed from the circle entirely, and the other elves move in
+ * slightly to keep the circle evenly spaced.
+ * 
+ * For example, with five Elves (again numbered 1 to 5):
+ * 
+ * The Elves sit in a circle; Elf 1 goes first: 1 5 2 4 3 Elves 3 and 4 are
+ * across the circle; Elf 3's present is stolen, being the one to the left. Elf
+ * 3 leaves the circle, and the rest of the Elves move in: 1 1 5 2 --> 5 2 4 - 4
+ * Elf 2 steals from the Elf directly across the circle, Elf 5: 1 1 - 2 --> 2 4
+ * 4 Next is Elf 4 who, choosing between Elves 1 and 2, steals from Elf 1: - 2 2
+ * --> 4 4 Finally, Elf 2 steals from Elf 4: 2 --> 2 - So, with five Elves, the
+ * Elf that sits starting in position 2 gets all the presents.
+ * 
+ * With the number of Elves given in your puzzle input, which Elf now gets all
+ * the presents?
+ * 
  * @author Chris Rooney
  *
  */
 public class Day19 {
 
 	public static void main(String[] args) {
+
 		int s = Integer.parseInt(args[0]);
-		int[] e = new int[s];
-		for (int i = 0; i < s; ++i) {
-			e[i] = 1;
-		}
-		boolean oneE = false;
 
-		int e1 = 0;
-		int e2 = 0;
-		while (!oneE) {
+		int i = -1;
+		do {
+			i++;
+		} while (Math.pow(2, i) < s);
+		i--;
+		int r = s - (int) Math.pow(2, i);
 
-			e2 = (e1 + 1) % s;
-			while (e[e2] == 0 && e2 != e1) {
-				e2 = (e2 + 1) % s;
-			}
+		System.out.println(2 * r + 1);
 
-			if (e2 == e1) {
-				oneE = true;
-				break;
-			}
+		i = -1;
+		do {
+			i++;
+		} while (Math.pow(3, i) < s);
+		i--;
+		r = s - (int) Math.pow(3, i);
 
-			e[e1] += e[e2];
-			e[e2] = 0;
+		int e = 0;
 
-			int eTmp = e1;
-			e1 = (e1 + 1) % s;
-			while (e[e1] == 0 && e1 != eTmp) {
-				e1 = (e1 + 1) % s;
-			}
+		if (s == 1) {
+			e = 1;
+		} else if (s <= 2 * Math.pow(3, i)) {
+			e = r;
+		} else {
+			e = (int) Math.pow(3, i) + 2 * (s - 2 * ((int) Math.pow(3, i)));
 		}
 
-		for (int i = 0; i < s; ++i) {
-			if (e[i] != 0) {
-				System.out.println(i + 1);
-			}
-		}
+		System.out.println(e);
 	}
 
 }
