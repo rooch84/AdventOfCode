@@ -60,12 +60,12 @@ import java.io.FileNotFoundException;
  * @author Chris Rooney
  *
  */
-public class Day12 {
+public class Day23 {
 
 	public static void main(String[] args) {
 
 		if (args.length != 2) {
-			System.err.println("Expected input is the file name and the initial value of reg c.");
+			System.err.println("Expected input is the file name and the initial value of reg a.");
 			System.exit(0);
 		}
 
@@ -78,7 +78,7 @@ public class Day12 {
 			r[i] = 0;
 		}
 
-		r[2] = Integer.parseInt(args[1]);
+		r[0] = Integer.parseInt(args[1]);
 
 		try {
 			scn = new Scanner(new File(args[0]));
@@ -88,80 +88,133 @@ public class Day12 {
 
 		while (scn.hasNextLine()) {
 			String j = scn.nextLine();
-			
+
 			Instruction ins = new Instruction();
-			
+
 			if (j.startsWith("jnz")) {
 				ins.m = 0;
-		
+
 				char c1 = j.split(" ")[1].charAt(0);
-					
+				char c2 = j.split(" ")[2].charAt(0);
+
 				if (c1 >= 97 && c1 <= 100) {
-					ins.a = j.split(" ")[1].charAt(0) - 97;
+					ins.a = c1 - 97;
 					ins.aIsNum = false;
 				} else {
 					ins.a = Integer.parseInt(j.split(" ")[1]);
 					ins.aIsNum = true;
-				}				
-				ins.b =  Integer.parseInt(j.split(" ")[2]) - 1;
+				}
+				if (c2 >= 97 && c2 <= 100) {
+					ins.b = c2 - 97;
+					ins.bIsNum = false;
+				} else {
+					ins.b = Integer.parseInt(j.split(" ")[2]) - 1;
+					ins.bIsNum = true;
+				}
 			} else if (j.startsWith("cpy")) {
 				ins.m = 1;
 				char c1 = j.split(" ")[1].charAt(0);
 				char c2 = j.split(" ")[2].charAt(0);
 				if (c1 >= 97 && c1 <= 100) {
-					ins.a = c1-97;
+					ins.a = c1 - 97;
 					ins.aIsNum = false;
 				} else {
 					ins.a = Integer.parseInt(j.split(" ")[1]);
 					ins.aIsNum = true;
 				}
 				ins.b = c2 - 97;
+				ins.bIsNum = false;
 			} else if (j.startsWith("inc")) {
 				ins.m = 2;
 				ins.a = j.split(" ")[1].charAt(0) - 97;
 			} else if (j.startsWith("dec")) {
 				ins.m = 3;
 				ins.a = j.split(" ")[1].charAt(0) - 97;
+			} else if (j.startsWith("tgl")) {
+				ins.m = 4;
+				char c1 = j.split(" ")[1].charAt(0);
+				if (c1 >= 97 && c1 <= 100) {
+					ins.a = c1 - 97;
+					ins.aIsNum = false;
+				} else {
+					ins.a = Integer.parseInt(j.split(" ")[1]);
+					ins.aIsNum = true;
+				}
 			}
-	
+
 			inst.add(ins);
-			
+
 		}
 
 		for (int i = 0; i < inst.size(); ++i) {
+			//System.out.println("i: " + i + " (" + r[0] + ", " + r[1] + ", " + r[2] + ", " + r[3] + ")");
 			Instruction j = inst.get(i);
 			if (j.m == 0) {
-				int v = 0;
-				
-				if (j.aIsNum) {
-					v = j.a;
-				} else {
+				int v = j.a;
+				if (!j.aIsNum) {
 					v = r[j.a];
 				}
-			
+				int w = j.b;
+				if (!j.bIsNum) {
+					w = r[j.b];
+				}
 				if (v != 0) {
-					i += j.b;
+				//	System.out.println("skipping: " + w);
+					i += w;
 				}
 			} else if (j.m == 1) {
-				if(!j.aIsNum) {
-					r[j.b] = r[j.a];
-				} else {
-					r[j.b] = j.a;
+				if (!j.bIsNum) {
+					if (!j.aIsNum) {
+						r[j.b] = r[j.a];
+					} else {
+						r[j.b] = j.a;
+					}
 				}
 			} else if (j.m == 2) {
 				r[j.a]++;
 			} else if (j.m == 3) {
 				r[j.a]--;
+			} else if (j.m == 4) {
+				if (j.toBeToggled) {
+					j.m = 2;
+				} else {
+					int x = -1;
+					if (j.aIsNum && i + j.a >= 0 && i + j.a < inst.size()) {
+						x = i + j.a;
+						
+					} else if (!j.aIsNum && i + r[j.a] >= 0 && i + r[j.a] < inst.size()) {
+						x = i + r[j.a];
+					}
+					//System.out.println("x: " + x);
+					if ((j.aIsNum && j.a == 0) || (!j.aIsNum && r[j.a] == 0) ) {
+						//System.out.println("I'm being called");
+						j.toBeToggled = true;
+					} else if (x > -1) {
+						Instruction k = inst.get(x);
+						if (k.m == 0) {
+							k.m = 1;
+						} else if (k.m == 1) {
+							k.m = 0;
+						} else if (k.m == 2) {
+							k.m = 3;
+						} else if (k.m == 3) {
+							k.m = 2;
+						} else if (k.m == 4) {
+							k.m = 2;
+						}
+					}
+				}
 			}
 		}
 		System.out.println(r[0]);
 	}
-	
+
 	private static class Instruction {
 		int m;
 		int a;
 		int b;
 		boolean aIsNum;
 		boolean bIsNum;
+		boolean toBeToggled = false;
 	}
 }
