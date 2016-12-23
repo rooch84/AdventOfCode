@@ -7,55 +7,72 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 /**
- * --- Day 12: Leonardo's Monorail ---
+ * --- Day 23: Safe Cracking ---
  * 
- * You finally reach the top floor of this building: a garden with a slanted
- * glass ceiling. Looks like there are no more stars to be had.
+ * This is one of the top floors of the nicest tower in EBHQ. The Easter Bunny's
+ * private office is here, complete with a safe hidden behind a painting, and
+ * who wouldn't hide a star in a safe behind a painting?
  * 
- * While sitting on a nearby bench amidst some tiger lilies, you manage to
- * decrypt some of the files you extracted from the servers downstairs.
+ * The safe has a digital screen and keypad for code entry. A sticky note
+ * attached to the safe has a password hint on it: "eggs". The painting is of a
+ * large rabbit coloring some eggs. You see 7.
  * 
- * According to these documents, Easter Bunny HQ isn't just this building - it's
- * a collection of buildings in the nearby area. They're all connected by a
- * local monorail, and there's another building not far from here!
- * Unfortunately, being night, the monorail is currently not operating.
+ * When you go to type the code, though, nothing appears on the display;
+ * instead, the keypad comes apart in your hands, apparently having been
+ * smashed. Behind it is some kind of socket - one that matches a connector in
+ * your prototype computer! You pull apart the smashed keypad and extract the
+ * logic circuit, plug it into your computer, and plug your computer into the
+ * safe.
  * 
- * You remotely connect to the monorail control systems and discover that the
- * boot sequence expects a password. The password-checking logic (your puzzle
- * input) is easy to extract, but the code it uses is strange: it's assembunny
- * code designed for the new computer you just assembled. You'll have to execute
- * the code and get the password.
+ * Now, you just need to figure out what output the keypad would have sent to
+ * the safe. You extract the assembunny code from the logic chip (your puzzle
+ * input). The code looks like it uses almost the same architecture and
+ * instruction set that the monorail computer used! You should be able to use
+ * the same assembunny interpreter for this as you did there, but with one new
+ * instruction:
  * 
- * The assembunny code you've extracted operates on four registers (a, b, c, and
- * d) that start at 0 and can hold any integer. However, it seems to make use of
- * only a few instructions:
+ * tgl x toggles the instruction x away (pointing at instructions like jnz does:
+ * positive means forward; negative means backward):
  * 
- * cpy x y copies x (either an integer or the value of a register) into register
- * y. inc x increases the value of register x by one. dec x decreases the value
- * of register x by one. jnz x y jumps to an instruction y away (positive means
- * forward; negative means backward), but only if x is not zero. The jnz
- * instruction moves relative to itself: an offset of -1 would continue at the
- * previous instruction, while an offset of 2 would skip over the next
- * instruction.
+ * For one-argument instructions, inc becomes dec, and all other one-argument
+ * instructions become inc. For two-argument instructions, jnz becomes cpy, and
+ * all other two-instructions become jnz. The arguments of a toggled instruction
+ * are not affected. If an attempt is made to toggle an instruction outside the
+ * program, nothing happens. If toggling produces an invalid instruction (like
+ * cpy 1 2) and an attempt is later made to execute that instruction, skip it
+ * instead. If tgl toggles itself (for example, if a is 0, tgl a would target
+ * itself and become inc a), the resulting instruction is not executed until the
+ * next time it is reached. For example, given this program:
  * 
- * For example:
+ * cpy 2 a tgl a tgl a tgl a cpy 1 a dec a dec a cpy 2 a initializes register a
+ * to 2. The first tgl a toggles an instruction a (2) away from it, which
+ * changes the third tgl a into inc a. The second tgl a also modifies an
+ * instruction 2 away from it, which changes the cpy 1 a into jnz 1 a. The
+ * fourth line, which is now inc a, increments a to 3. Finally, the fifth line,
+ * which is now jnz 1 a, jumps a (3) instructions ahead, skipping the dec a
+ * instructions. In this example, the final value in register a is 3.
  * 
- * cpy 41 a inc a inc a dec a jnz a 2 dec a The above code would set register a
- * to 41, increase its value by 2, decrease its value by 1, and then skip the
- * last dec a (because a is not zero, so the jnz a 2 skips it), leaving register
- * a at 42. When you move past the last instruction, the program halts.
+ * The rest of the electronics seem to place the keypad entry (the number of
+ * eggs, 7) in register a, run the code, and then send the value left in
+ * register a to the safe.
  * 
- * After executing the assembunny code in your puzzle input, what value is left
- * in register a?
+ * What value should be sent to the safe?
  * 
  * --- Part Two ---
  * 
- * As you head down the fire escape to the monorail, you notice it didn't start;
- * register c needs to be initialized to the position of the ignition key.
+ * The safe doesn't open, but it does make several angry noises to express its
+ * frustration.
  * 
- * If you instead initialize register c to be 1, what value is now left in
- * register a?
+ * You're quite sure your logic is working correctly, so the only other thing
+ * is... you check the painting again. As it turns out, colored eggs are still
+ * eggs. Now you count 12.
  * 
+ * As you run the program with this new input, the prototype computer begins to
+ * overheat. You wonder what's taking so long, and whether the lack of any
+ * instruction more powerful than "add one" has anything to do with it. Don't
+ * bunnies usually multiply?
+ * 
+ * Anyway, what value should actually be sent to the safe?
  * 
  * @author Chris Rooney
  *
@@ -85,12 +102,11 @@ public class Day23 {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-
+		
 		while (scn.hasNextLine()) {
 			String j = scn.nextLine();
 
 			Instruction ins = new Instruction();
-
 			if (j.startsWith("jnz")) {
 				ins.m = 0;
 
@@ -108,7 +124,7 @@ public class Day23 {
 					ins.b = c2 - 97;
 					ins.bIsNum = false;
 				} else {
-					ins.b = Integer.parseInt(j.split(" ")[2]) - 1;
+					ins.b = Integer.parseInt(j.split(" ")[2]);
 					ins.bIsNum = true;
 				}
 			} else if (j.startsWith("cpy")) {
@@ -143,12 +159,13 @@ public class Day23 {
 			}
 
 			inst.add(ins);
-
 		}
-
+		scn.close();
+		
 		for (int i = 0; i < inst.size(); ++i) {
-			//System.out.println("i: " + i + " (" + r[0] + ", " + r[1] + ", " + r[2] + ", " + r[3] + ")");
+
 			Instruction j = inst.get(i);
+
 			if (j.m == 0) {
 				int v = j.a;
 				if (!j.aIsNum) {
@@ -159,8 +176,7 @@ public class Day23 {
 					w = r[j.b];
 				}
 				if (v != 0) {
-				//	System.out.println("skipping: " + w);
-					i += w;
+					i += (w - 1);
 				}
 			} else if (j.m == 1) {
 				if (!j.bIsNum) {
@@ -181,13 +197,11 @@ public class Day23 {
 					int x = -1;
 					if (j.aIsNum && i + j.a >= 0 && i + j.a < inst.size()) {
 						x = i + j.a;
-						
+
 					} else if (!j.aIsNum && i + r[j.a] >= 0 && i + r[j.a] < inst.size()) {
 						x = i + r[j.a];
 					}
-					//System.out.println("x: " + x);
-					if ((j.aIsNum && j.a == 0) || (!j.aIsNum && r[j.a] == 0) ) {
-						//System.out.println("I'm being called");
+					if ((j.aIsNum && j.a == 0) || (!j.aIsNum && r[j.a] == 0)) {
 						j.toBeToggled = true;
 					} else if (x > -1) {
 						Instruction k = inst.get(x);
